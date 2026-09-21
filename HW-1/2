@@ -1,0 +1,49 @@
+#include <iostream>
+#include <vector>
+#include <thread>
+using namespace std;
+
+void func(const vector<vector<int>>& A, const vector<int>& x, vector<int>& y, int start, int end, int m) {
+    for (int i = start; i < end; i++) {
+        int sum = 0;
+        for (int j = 0; j < m; j++) {
+            sum += A[i][j] * x[j];
+        }
+        y[i] = sum;
+    }
+}
+
+int main() {
+    int n = 4;
+    int m = 4;
+    vector<vector<int>> A = {
+        {1, 2, 3, 4},
+        {5, 6, 7, 8},
+        {9, 1, 2, 3},
+        {4, 5, 6, 7}
+    };
+    vector<int> x = {1, 2, 3, 4};
+    vector<int> y(n, 0);
+    int kol = 4;
+    vector<thread> threads;
+    int rows = n / kol;
+    for (int i = 0; i < kol; i++) {
+        int start = i * rows;
+        int end;
+        if (i == kol - 1) {
+            end = n;
+        }
+        else {
+            end = start + rows;
+        }
+        threads.push_back(thread(func, ref(A), ref(x), ref(y), start, end, m));
+    }
+    for (auto& t : threads) {
+        t.join();
+    }
+    cout << "y:" << endl;
+    for (int i = 0; i < n; i++) {
+        cout << y[i] << " ";
+    }
+    cout << endl;
+}
