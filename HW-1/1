@@ -1,0 +1,59 @@
+#include <iostream>
+#include <vector>
+#include <thread>
+using namespace std;
+
+void func(const vector<vector<int>>& A, const vector<vector<int>>& B, vector<vector<int>>& C, int start, int end, int m, int k) {
+    for (int i = start; i < end; i++) {
+        for (int j = 0; j < k; j++) {
+            int sum = 0;
+            for (int t = 0; t < m; t++) {
+                sum += A[i][t] * B[t][j];
+            }
+            C[i][j] = sum;
+        }
+    }
+}
+
+int main() {
+    int n = 4;
+    int m = 4;
+    int k = 4;
+    vector<vector<int>> A = {
+        {1, 2, 3, 4},
+        {5, 6, 7, 8},
+        {9, 1, 2, 3},
+        {4, 5, 6, 7}
+    };
+    vector<vector<int>> B = {
+        {1, 7, 2, 2},
+        {1, 1, 8, 6},
+        {0, 2, 4, 0},
+        {0, 3, 3, 1}
+    };
+    vector<vector<int>> C(n, vector<int>(k, 0));
+    int kol = 4;
+    vector<thread> threads;
+    int rows = n / kol;
+    for (int i = 0; i < kol; i++) {
+        int start = i * rows;
+        int end;
+        if (i == kol - 1) {
+            end = n;
+        }
+        else {
+            end = start + rows;
+        }
+        threads.push_back(thread(func, ref(A), ref(B), ref(C), start, end, m, k));
+    }
+    for (auto& t : threads) {
+        t.join();
+    }
+    cout << "С:" << endl;
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < k; j++) {
+            cout << C[i][j] << " ";
+        }
+        cout << endl;
+    }
+}
