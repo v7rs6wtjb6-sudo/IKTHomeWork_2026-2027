@@ -1,0 +1,50 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <thread>
+#include <mutex>
+#include <random>
+#include <chrono>
+using namespace std;
+mutex mtx;
+
+void func(int id, int k) {
+    random_device random;
+    mt19937 generator(random());
+    uniform_int_distribution<> dis(100, 500);
+    while (true) {
+        this_thread::sleep_for(chrono::milliseconds(dis(generator)));
+        lock_guard<mutex> lock(mtx);
+        ofstream fileOut("data.txt", ios::app);
+        if (fileOut.is_open()) {
+            fileOut << id << " ";
+            fileOut.close();
+        }
+        ifstream fileIn("data.txt");
+        int sum = 0;
+        int value;
+        while (fileIn >> value) {
+            sum += value;
+        }
+        fileIn.close();
+        cout << "Поток " << id << ": сумма в файле = " << sum << endl;
+        if (sum >= id * k) {
+            cout << "Поток " << id << " все" << endl;
+            break;
+        }
+    }
+}
+
+int main() {
+    ofstream clear("data.txt", ios::trunc);
+    clear.close();
+    int n = 3;
+    int k = 10;
+    vector<thread> threads;
+    for (int i = 1; i <= n; i++) {
+        threads.push_back(thread(func, i, k));
+    }
+    for (auto& t : threads) {
+        t.join();
+    }
+}
